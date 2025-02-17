@@ -5,7 +5,7 @@ import SwitchSelector from 'react-native-switch-selector';
 import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-export default function VaccinationBooking({ route }) {
+export default function VaccinationBooking() {
   const [modalVisible, setModalVisible] = useState(false);
   const [guardant, setGuardant] = useState(null);
   const [vaccine, setVaccine] = useState(null);

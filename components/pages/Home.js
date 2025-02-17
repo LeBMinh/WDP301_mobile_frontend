@@ -25,7 +25,7 @@ export default function Home() {
 
           <View style={styles.imageContainer} >
             <Image
-              source={require('../../assets/vxn-media/HomePage/baby.png')} // Replace with your image path
+              source={require('../../assets/vxn-media/HomePage/babybg.png')} // Replace with your image path
               style={styles.homeImage}
             />
 
@@ -180,8 +180,11 @@ const styles = StyleSheet.create({
   },
   imageText: {
     fontSize: 12,
-    color: "#5D8AB0",
+    color: "#333333",
     marginBottom: 10,
+    backgroundColor: "rgba(157, 157, 224, 0.5)",
+    borderRadius: 5,
+    padding: 2,
   },
   imagePhoneline: {
     fontSize: 12,

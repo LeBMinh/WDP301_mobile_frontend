@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Table, Row, Rows } from 'react-native-table-component';
 
-export default function InjectionHistory({ route }) {
+export default function InjectionHistory() {
   const columnWidths = [50, 100, 150, 100, 200, 200]; // Set widths for each column
 
   const tableHead = ['ID', 'Mã bill', 'Số lượng mũi tiêm', 'Ngày tiêm', 'Bác Sĩ thực hiện mũi tiêm', 'Chiệu chứng sau khi tiêm'];
