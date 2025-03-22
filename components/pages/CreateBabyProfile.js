@@ -1,24 +1,101 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, ImageBackground, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, ImageBackground, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import SwitchSelector from 'react-native-switch-selector';
-import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import axios from '../../utils/axiosConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function CreateBabyProfile() {
+export default function CreateBabyProfile({ navigation }) {
     const [modalVisible, setModalVisible] = useState(false);
-    const [gender, setGender] = useState(null);
-    const [province, setProvince] = useState(null);
-    const [district, setDistrict] = useState(null);
-    const [ward, setWard] = useState(null);
-    const [date, setDate] = useState(new Date());
+    const [childName, setChildName] = useState('');
+    const [gender, setGender] = useState('male'); // Default to male
+    const [birthDate, setBirthDate] = useState(new Date());
     const [showPicker, setShowPicker] = useState(false);
+    
+    // Separate fields for parents
+    const [fatherName, setFatherName] = useState('');
+    const [motherName, setMotherName] = useState('');
+    const [fatherPhone, setFatherPhone] = useState('');
+    const [motherPhone, setMotherPhone] = useState('');
+    
+    // Direct text inputs for address
+    const [province, setProvince] = useState('');
+    const [district, setDistrict] = useState('');
+    const [ward, setWard] = useState('');
+    const [streetAddress, setStreetAddress] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleCreateProfile = () => {
-        setModalVisible(true); // Show modal when 'Tạo hồ sơ' button is pressed
-        setTimeout(() => {
-            setModalVisible(false);
-        }, 2000); // Close after 2 seconds
+    const handleCreateProfile = async () => {
+        try {
+            setLoading(true);
+            
+            // Form validation
+            if (!childName || !fatherName || !motherName || !fatherPhone || !motherPhone || 
+                !streetAddress || !province || !district || !ward) {
+                Alert.alert('Lỗi', 'Vui lòng điền đầy đủ thông tin');
+                setLoading(false);
+                return;
+            }
+
+            // Get user ID from storage
+            const userToken = await AsyncStorage.getItem('userToken');
+            if (!userToken) {
+                Alert.alert('Lỗi', 'Bạn cần đăng nhập lại');
+                setLoading(false);
+                return;
+            }
+
+            const userId = await AsyncStorage.getItem('userId');
+            console.log('User ID từ AsyncStorage:', userId);
+            if (!userId) {
+                Alert.alert('Lỗi', 'Không thể xác định người dùng');
+                setLoading(false);
+                return;
+            }
+
+            // Format the address
+            const fullAddress = `${streetAddress}, ${ward}, ${district}, ${province}`;
+            
+            // Prepare data for API with separate parent information
+            const childData = {
+                userId: parseInt(userId, 10),
+                childrenFullname: childName,
+                dob: birthDate.toISOString().split('T')[0],
+                gender: gender,
+                fatherFullName: fatherName,
+                motherFullName: motherName,
+                fatherPhoneNumber: fatherPhone,
+                motherPhoneNumber: motherPhone,
+                address: fullAddress
+            };
+
+            // Call the API to create child
+            const response = await axios.post('/api/Child/create', childData);
+            
+            console.log('Child created successfully:', response.data);
+            
+            // Show success modal
+            setModalVisible(true);
+            
+            // Close modal after 2 seconds and navigate
+            setTimeout(() => {
+                setModalVisible(false);
+                navigation.navigate('MainPage'); // Adjust based on your navigation
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Error creating child profile:', error.response?.data || error.message);
+            
+            let errorMessage = 'Đã có lỗi xảy ra khi tạo hồ sơ';
+            if (error.response) {
+                errorMessage = error.response.data.message || errorMessage;
+            }
+            
+            Alert.alert('Lỗi', errorMessage);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const genderOptions = [
@@ -26,91 +103,137 @@ export default function CreateBabyProfile() {
         { label: 'Nữ', value: 'female' }
     ];
 
-    const provinces = [{ label: 'Hồ Chí Minh', value: 'hcm' }, { label: 'Hà Nội', value: 'hn' }];
-    const districts = [{ label: 'Quận 1', value: 'q1' }, { label: 'Quận 2', value: 'q2' }];
-    const wards = [{ label: 'Phường 1', value: 'p1' }, { label: 'Phường 2', value: 'p2' }];
-
     return (
         <SafeAreaProvider>
             <ImageBackground
-                source={require('../../assets/vxn-media/HomePage/baby.png')} // Change to your image path
+                source={require('../../assets/vxn-media/HomePage/baby.png')}
                 style={styles.container}
             >
                 <Text style={styles.title}>Tạo hồ sơ cho bé ở đây</Text>
                 <ScrollView showsVerticalScrollIndicator={false}>
                     <View style={styles.inputContainer}>
                         <Text style={styles.inputName}>Tên của bé</Text>
-                        <TextInput style={styles.input} placeholder="Nhập tên của bé" />
+                        <TextInput 
+                            style={styles.input} 
+                            placeholder="Nhập tên của bé" 
+                            value={childName}
+                            onChangeText={setChildName}
+                        />
+                        
+                        <Text style={styles.inputName}>Ngày sinh</Text>
                         <TouchableOpacity onPress={() => setShowPicker(true)}>
-                            <Text style={styles.input}>Chọn ngày: {date.toLocaleDateString()}</Text>
+                            <Text style={styles.input}>
+                                {birthDate.toLocaleDateString()}
+                            </Text>
                         </TouchableOpacity>
+                        
                         {showPicker && (
                             <DateTimePicker
-                                value={date}
+                                value={birthDate}
                                 mode="date"
                                 display="default"
                                 onChange={(event, selectedDate) => {
                                     setShowPicker(false);
-                                    if (selectedDate) setDate(selectedDate);
+                                    if (selectedDate) setBirthDate(selectedDate);
                                 }}
                                 maximumDate={new Date()} // Disable days after today
                             />
                         )}
-                        <Text style={styles.inputName}>Họ tên ba hoặc mẹ (người giám hộ)</Text>
-                        <TextInput style={styles.input} placeholder="Nhập tên ba hoặc mẹ" />
-                        <Text style={styles.inputName}>Số điện thoại liên lạc</Text>
-                        <TextInput style={styles.input} placeholder="Nhập số điện thoại" />
+                        
                         <Text style={styles.inputName}>Giới tính</Text>
                         <SwitchSelector
                             options={genderOptions}
                             initial={0}
                             onPress={value => setGender(value)}
-                            buttonColor="#5D8AB0"         // Color of the selected button
-                            backgroundColor="#E0E0E0"     // Background color of the switch
-                            selectedColor="#FFFFFF"       // Text color of the selected option
+                            buttonColor="#5D8AB0"
+                            backgroundColor="#E0E0E0"
+                            selectedColor="#FFFFFF"
                             textColor="#000000"
                             style={styles.switch}
                         />
+                        
+                        {/* Father information */}
+                        <Text style={styles.inputName}>Họ tên ba</Text>
+                        <TextInput 
+                            style={styles.input} 
+                            placeholder="Nhập họ tên ba" 
+                            value={fatherName}
+                            onChangeText={setFatherName}
+                        />
+                        
+                        <Text style={styles.inputName}>Số điện thoại ba</Text>
+                        <TextInput 
+                            style={styles.input} 
+                            placeholder="Nhập số điện thoại ba" 
+                            value={fatherPhone}
+                            onChangeText={setFatherPhone}
+                            keyboardType="phone-pad"
+                        />
+                        
+                        {/* Mother information */}
+                        <Text style={styles.inputName}>Họ tên mẹ</Text>
+                        <TextInput 
+                            style={styles.input} 
+                            placeholder="Nhập họ tên mẹ" 
+                            value={motherName}
+                            onChangeText={setMotherName}
+                        />
+                        
+                        <Text style={styles.inputName}>Số điện thoại mẹ</Text>
+                        <TextInput 
+                            style={styles.input} 
+                            placeholder="Nhập số điện thoại mẹ" 
+                            value={motherPhone}
+                            onChangeText={setMotherPhone}
+                            keyboardType="phone-pad"
+                        />
+                        
+                        {/* Address fields - all as text inputs now */}
                         <Text style={styles.inputName}>Tỉnh thành</Text>
-                        <Dropdown
-                            data={provinces}
-                            labelField="label"
-                            valueField="value"
-                            placeholder="Chọn tỉnh thành"
+                        <TextInput 
+                            style={styles.input} 
+                            placeholder="Nhập tỉnh thành" 
                             value={province}
-                            onChange={item => setProvince(item.value)}
-                            style={styles.dropdown}
+                            onChangeText={setProvince}
                         />
+                        
                         <Text style={styles.inputName}>Quận huyện</Text>
-                        <Dropdown
-                            data={districts}
-                            labelField="label"
-                            valueField="value"
-                            placeholder="Chọn quận huyện"
+                        <TextInput 
+                            style={styles.input} 
+                            placeholder="Nhập quận huyện" 
                             value={district}
-                            onChange={item => setDistrict(item.value)}
-                            style={styles.dropdown}
+                            onChangeText={setDistrict}
                         />
+                        
                         <Text style={styles.inputName}>Phường xã</Text>
-                        <Dropdown
-                            data={wards}
-                            labelField="label"
-                            valueField="value"
-                            placeholder="Chọn phường xã"
+                        <TextInput 
+                            style={styles.input} 
+                            placeholder="Nhập phường xã" 
                             value={ward}
-                            onChange={item => setWard(item.value)}
-                            style={styles.dropdown}
+                            onChangeText={setWard}
                         />
+                        
                         <Text style={styles.inputName}>Số nhà, tên đường</Text>
-                        <TextInput style={styles.input} placeholder="Nhập số nhà, tên đường" />
+                        <TextInput 
+                            style={styles.input} 
+                            placeholder="Nhập số nhà, tên đường" 
+                            value={streetAddress}
+                            onChangeText={setStreetAddress}
+                        />
                     </View>
 
-                    <TouchableOpacity style={styles.button} onPress={handleCreateProfile}>
-                        <Text style={styles.buttonText}>Tạo hồ sơ</Text>
+                    <TouchableOpacity 
+                        style={[styles.button, loading && styles.buttonDisabled]} 
+                        onPress={handleCreateProfile}
+                        disabled={loading}
+                    >
+                        <Text style={styles.buttonText}>
+                            {loading ? 'Đang xử lý...' : 'Tạo hồ sơ'}
+                        </Text>
                     </TouchableOpacity>
                 </ScrollView>
 
-                {/* Modal */}
+                {/* Success Modal */}
                 <Modal
                     animationType="slide"
                     transparent={true}
@@ -125,12 +248,13 @@ export default function CreateBabyProfile() {
                 </Modal>
             </ImageBackground>
         </SafeAreaProvider>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 30 },
     title: { fontSize: 25, fontWeight: 'bold', color: "#5D8AB0", marginTop: 40, marginBottom: 10, textAlign: 'center' },
+    inputContainer: { alignItems: 'center' },
     inputName: { fontSize: 14, fontWeight: 'bold', alignSelf: 'flex-start', marginHorizontal: 10 },
     input: { width: 280, padding: 10, margin: 10, borderWidth: 1, borderRadius: 5, backgroundColor: "#FFFAFA" },
     button: {
@@ -147,10 +271,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold"
     },
+    buttonDisabled: {
+        backgroundColor: '#cccccc',
+    },
     switch: { margin: 10, width: 250, },
-    dropdown: { width: 250, margin: 10, borderWidth: 1, borderRadius: 5, padding: 8, backgroundColor: "#FFFAFA" },
-
-    // Modal Styles
     modalContainer: { flex: 2, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
     modalContent: { backgroundColor: 'white', padding: 30, borderRadius: 10, alignItems: 'center' },
     modalText: { fontSize: 16, fontWeight: 'bold', textAlign: 'center', color: '#5D8AB0' },

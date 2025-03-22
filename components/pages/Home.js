@@ -40,7 +40,7 @@ export default function Home() {
                 để bảo vệ sức khỏe toàn diện cho bé yêu qua từng {'\n'}
                 mũi tiêm. "
               </Text>
-              <View style={{ display: "flex", flexDirection: "row", gap: 15, alignItems: 'center' }}>
+              <View style={{ display: "flex", flexDirection: "row", gap: 15, alignItems: "center" }}>
                 <Text style={{ fontSize: 12, color: "#8E6C89" }}>
                   Đường dây nóng 24/7:
                 </Text>
