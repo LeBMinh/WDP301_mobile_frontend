@@ -147,7 +147,7 @@ useEffect(() => {
     fetchPackages();
   }, []);
 
-  // Xử lý đặt lịch
+  // Xử lý dat lich
   const handleSubmit = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
