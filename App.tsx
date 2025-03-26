@@ -25,7 +25,7 @@ export default function App() {
           // If signed in, go to HomeTabs (Main App)
           <>
             <Stack.Screen name="MainPage">
-              {() => <HomeTabs />}
+              {() => <HomeTabs setIsSignedIn={setIsSignedIn}/>}
             </Stack.Screen>
             <Stack.Screen name="VaccineDetail" component={VaccineDetail} />
             <Stack.Screen name="CreateBabyProfile" component={CreateBabyProfile} />

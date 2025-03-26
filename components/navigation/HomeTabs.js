@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const Tab = createBottomTabNavigator();
 
-export default function HomeTabs() {
+export default function HomeTabs({ setIsSignedIn }) {
     return (
         <Tab.Navigator screenOptions={({ route }) =>
         ({
@@ -54,7 +54,11 @@ export default function HomeTabs() {
             <Tab.Screen name="Trang chủ" component={Home} />
             <Tab.Screen name="Đặt lịch" component={VaccinationBooking} />
             <Tab.Screen name="Lịch sử" component={InjectionHistory} />
-            <Tab.Screen name="Cá nhân" component={Profile} />
+            {/* <Tab.Screen name="Cá nhân" component={Profile} /> */}
+            <Tab.Screen
+                name="Cá nhân"
+                component={() => <Profile setIsSignedIn={setIsSignedIn} />}
+            />
         </Tab.Navigator>
     );
 }

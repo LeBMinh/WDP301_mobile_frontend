@@ -9,24 +9,127 @@ export default function SignIn({ navigation, setIsSignedIn }) {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // const handleLogin = async () => {
+    //     try {
+    //         setLoading(true);
+            
+    //         // Validate input
+    //         if (!email || !password) {
+    //             Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ email và mật khẩu');
+    //             return;
+    //         }
+    
+    //         // Validate email format
+    //         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //         if (!emailRegex.test(email)) {
+    //             Alert.alert('Lỗi', 'Email không hợp lệ');
+    //             return;
+    //         }
+    
+    //         // Gọi API login với endpoint chính xác từ routes
+    //         const response = await axios.post('/api/User/login', {
+    //             email: email.toLowerCase().trim(),
+    //             password
+    //         });
+    
+    //         console.log('Full response:', response.data);
+    
+    //         // Lưu token vào AsyncStorage
+    //         if (response.data) {
+    //             // Store token
+    //             const token = response.data.token || response.data; // Xử lý cả 2 trường hợp: token có thể là một trường trong response.data hoặc toàn bộ response.data là token
+    //             await AsyncStorage.setItem('userToken', token);
+            
+    //             if (response.data.userId) {
+    //                 await AsyncStorage.setItem('userId', response.data.userId.toString());
+    //                 console.log('User ID from response:', response.data.userId);
+    //             } else {
+    //                 try {
+    //                     // Giải mã token để lấy thông tin payload
+    //                     const decodedToken = jwtDecode(response.data.token);
+    //                     console.log('Decoded token structure:', decodedToken);
+                
+    //                     // Lấy userId từ decoded token hoặc từ phản hồi API
+    //                     const userId = decodedToken.Id || decodedToken.id || decodedToken.userId || response.data.userId;
+    //                     console.log('User ID from token or response:', userId);
+                
+    //                     if (userId) {
+    //                         await AsyncStorage.setItem('userId', userId.toString()); // Lưu userId vào AsyncStorage
+    //                     } else {
+    //                         console.log('User ID not found in token or response');
+                
+    //                         // Nếu không tìm thấy userId, thử gọi API để lấy thông tin user
+    //                         try {
+    //                             const userResponse = await axios.get('/api/User/profile', {
+    //                                 headers: {
+    //                                     Authorization: `Bearer ${token}`
+    //                                 }
+    //                             });
+                
+    //                             if (userResponse.data && userResponse.data.id) {
+    //                                 await AsyncStorage.setItem('userId', userResponse.data.id.toString());
+    //                             } else {
+    //                                 console.log('User ID not found in profile response');
+    //                             }
+    //                         } catch (profileError) {
+    //                             console.error('Error fetching user profile:', profileError);
+    //                         }
+    //                     }
+    //                 } catch (decodeError) {
+    //                     console.error('Error decoding token:', decodeError);
+                
+    //                     // Fallback: Nếu không giải mã được token, thử lấy userId từ phản hồi API
+    //                     if (response.data.userId) {
+    //                         await AsyncStorage.setItem('userId', response.data.userId.toString());
+    //                     } else {
+    //                         console.log('User ID not found in response');
+    //                     }
+    //                 }
+    //             }
+
+                
+            
+    //             // Sau khi lưu, kiểm tra lại userId trong AsyncStorage
+    //             const storedUserId = await AsyncStorage.getItem('userId');
+    //             console.log('Stored user ID:', storedUserId);
+            
+    //             // Đăng nhập thành công
+    //             setIsSignedIn(true);
+    //             Alert.alert('Thành công', 'Đăng nhập thành công!');
+    //         }
+    
+           
+
+    //     } catch (error) {
+    //         let errorMessage = 'Đã có lỗi xảy ra';
+            
+    //         // Log error to debug
+    //         console.error('Login error:', error.response?.data || error.message);
+            
+    //         if (error.response) {
+    //             errorMessage = error.response.data.message || errorMessage;
+    //         }
+    //         Alert.alert('Lỗi', errorMessage);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
     const handleLogin = async () => {
         try {
             setLoading(true);
             
-            // Validate input
             if (!email || !password) {
                 Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ email và mật khẩu');
                 return;
             }
     
-            // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 Alert.alert('Lỗi', 'Email không hợp lệ');
                 return;
             }
     
-            // Gọi API login với endpoint chính xác từ routes
             const response = await axios.post('/api/User/login', {
                 email: email.toLowerCase().trim(),
                 password
@@ -34,86 +137,59 @@ export default function SignIn({ navigation, setIsSignedIn }) {
     
             console.log('Full response:', response.data);
     
-            // Lưu token vào AsyncStorage
-            if (response.data) {
-                // Store token
-                const token = response.data.token || response.data; // Xử lý cả 2 trường hợp: token có thể là một trường trong response.data hoặc toàn bộ response.data là token
-                await AsyncStorage.setItem('userToken', token);
-            
-                if (response.data.userId) {
-                    await AsyncStorage.setItem('userId', response.data.userId.toString());
-                    console.log('User ID from response:', response.data.userId);
-                } else {
-                    try {
-                        // Giải mã token để lấy thông tin payload
-                        const decodedToken = jwtDecode(response.data.token);
-                        console.log('Decoded token structure:', decodedToken);
-                
-                        // Lấy userId từ decoded token hoặc từ phản hồi API
-                        const userId = decodedToken.Id || decodedToken.id || decodedToken.userId || response.data.userId;
-                        console.log('User ID from token or response:', userId);
-                
-                        if (userId) {
-                            await AsyncStorage.setItem('userId', userId.toString()); // Lưu userId vào AsyncStorage
-                        } else {
-                            console.log('User ID not found in token or response');
-                
-                            // Nếu không tìm thấy userId, thử gọi API để lấy thông tin user
-                            try {
-                                const userResponse = await axios.get('/api/User/profile', {
-                                    headers: {
-                                        Authorization: `Bearer ${token}`
-                                    }
-                                });
-                
-                                if (userResponse.data && userResponse.data.id) {
-                                    await AsyncStorage.setItem('userId', userResponse.data.id.toString());
-                                } else {
-                                    console.log('User ID not found in profile response');
-                                }
-                            } catch (profileError) {
-                                console.error('Error fetching user profile:', profileError);
-                            }
-                        }
-                    } catch (decodeError) {
-                        console.error('Error decoding token:', decodeError);
-                
-                        // Fallback: Nếu không giải mã được token, thử lấy userId từ phản hồi API
-                        if (response.data.userId) {
-                            await AsyncStorage.setItem('userId', response.data.userId.toString());
-                        } else {
-                            console.log('User ID not found in response');
-                        }
-                    }
-                }
-
-                
-            
-                // Sau khi lưu, kiểm tra lại userId trong AsyncStorage
-                const storedUserId = await AsyncStorage.getItem('userId');
-                console.log('Stored user ID:', storedUserId);
-            
-                // Đăng nhập thành công
-                setIsSignedIn(true);
-                Alert.alert('Thành công', 'Đăng nhập thành công!');
+            // Ensure response contains token
+            const token = typeof response.data === 'string' ? response.data : response.data.token;
+            if (!token) {
+                Alert.alert('Lỗi', 'Không nhận được token từ server');
+                return;
             }
     
-           
-
-        } catch (error) {
-            let errorMessage = 'Đã có lỗi xảy ra';
-            
-            // Log error to debug
-            console.error('Login error:', error.response?.data || error.message);
-            
-            if (error.response) {
-                errorMessage = error.response.data.message || errorMessage;
+            await AsyncStorage.setItem('userToken', token);
+    
+            let userId = null;
+    
+            try {
+                // Decode the token
+                const decodedToken = jwtDecode(token);
+                console.log('Decoded token structure:', decodedToken);
+                userId = decodedToken.Id || decodedToken.id || decodedToken.userId;
+            } catch (decodeError) {
+                console.error('Error decoding token:', decodeError);
             }
+    
+            if (!userId) {
+                // If decoding fails or userId is not found in token, call the profile API
+                try {
+                    const userResponse = await axios.get('/api/User/profile', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+    
+                    if (userResponse.data && userResponse.data.id) {
+                        userId = userResponse.data.id.toString();
+                    }
+                } catch (profileError) {
+                    console.error('Error fetching user profile:', profileError);
+                }
+            }
+    
+            if (userId) {
+                await AsyncStorage.setItem('userId', userId);
+                console.log('Stored user ID:', userId);
+            } else {
+                console.log('User ID not found');
+            }
+    
+            setIsSignedIn(true);
+            Alert.alert('Thành công', 'Đăng nhập thành công!');
+        } catch (error) {
+            console.error('Login error:', error.response?.data || error.message);
+            let errorMessage = error.response?.data?.message || 'Đã có lỗi xảy ra';
             Alert.alert('Lỗi', errorMessage);
         } finally {
             setLoading(false);
         }
     };
+    
 
     return (
         <ImageBackground
