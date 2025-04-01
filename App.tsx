@@ -29,7 +29,7 @@ export default function App() {
             </Stack.Screen>
             <Stack.Screen name="VaccineDetail" component={VaccineDetail} />
             <Stack.Screen name="CreateBabyProfile" component={CreateBabyProfile} />
-            <Stack.Screen name="UpdateProfile" component={UpdateProfile} />
+            {/* <Stack.Screen name="UpdateProfile" component={UpdateProfile} /> */}
             <Stack.Screen name="BabyProfile" component={BabyProfile} />
             <Stack.Screen name="PaymentHistory" component={PaymentHistory} />
           </>

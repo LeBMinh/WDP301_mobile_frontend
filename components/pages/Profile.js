@@ -3,34 +3,80 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, Pressable, Modal, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
 import { AntDesign, Ionicons, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import axios from '../../utils/axiosConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Profile({ setIsSignedIn }) {
   const navigation = useNavigation();
 
   // State for children list and loading status
   const [childrenList, setChildrenList] = useState([]);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedChild, setSelectedChild] = useState(null);
 
-  // Simulate fetching child profiles
+  // fetching child profiles
   useEffect(() => {
     const fetchChildren = async () => {
       setLoading(true);
-      // Simulate API call with setTimeout
-      setTimeout(() => {
-        const fetchedChildren = [
-          { id: 1, name: 'Bé An' },
-          { id: 2, name: 'Bé Bình' },
-        ];
-        setChildrenList(fetchedChildren);
-        setSelectedChild(fetchedChildren[0] || null);
+      try {
+        const userId = await AsyncStorage.getItem('userId');  // Get userId from storage
+        if (!userId) {
+          console.error('User ID not found in AsyncStorage');
+          setLoading(false);
+          return;
+        }
+
+        const response = await axios.get(`/api/Child/get-all`, {
+          params: { FilterOn: "userId", FilterQuery: userId }, // Pass userId as filter
+        });
+
+        if (response.data?.$values?.length > 0) {
+          const fetchedChildren = response.data.$values.map((child) => ({
+            id: child.id,
+            name: child.childrenFullname,  
+          }));
+
+          setChildrenList(fetchedChildren);
+          setSelectedChild(fetchedChildren[0] || null);
+        } else {
+          setChildrenList([]);
+        }
+      } catch (error) {
+        console.error('Error fetching children:', error.response?.data || error.message);
+      } finally {
         setLoading(false);
-      }, 1000); // Simulate 1s delay
+      }
     };
 
     fetchChildren();
   }, []);
+
+  // fetch user name and email
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');  // ✅ Get user ID from storage
+        if (!userId) {
+          console.error('User ID not found in AsyncStorage');
+          return;
+        }
+
+        const response = await axios.get(`/api/User/get/${userId}`); // ✅ Correct route
+        setUsername(response.data.username || 'Người dùng');
+        setEmail(response.data.email || 'Email người dùng');
+      } catch (error) {
+        console.error('Error fetching user profile:', error.response?.data || error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
 
   const handleLogout = () => {
     setIsSignedIn(false);
@@ -49,13 +95,18 @@ export default function Profile({ setIsSignedIn }) {
         <View style={styles.profileLeftContainer}>
           <Ionicons name="person-circle" size={45} color="#5D8AB0" />
           <View style={styles.profileLeftContent}>
-            <Text style={styles.profileLeftTitle}>Username here</Text>
-            <Text style={styles.profileLeftDes}>Cập nhật thông tin cá nhân</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color="#5D8AB0" />
+            ) : (
+              <Text style={styles.profileLeftTitle}>{username}</Text>
+            )}
+            <Text style={styles.profileLeftDes}>{email}</Text>
+            {/* <Text style={styles.profileLeftDes}>Cập nhật thông tin cá nhân</Text> */}
           </View>
         </View>
-        <Pressable onPress={() => navigation.navigate('UpdateProfile')}>
+        {/* <Pressable onPress={() => navigation.navigate('UpdateProfile')}>
           <AntDesign name="infocirlce" size={20} color="gray" />
-        </Pressable>
+        </Pressable> */}
       </View>
 
       <View style={styles.stackNavigateContainer}>
@@ -95,7 +146,7 @@ export default function Profile({ setIsSignedIn }) {
               <Text style={styles.modalTitle}>Chọn Hồ sơ trẻ</Text>
               <FlatList
                 data={childrenList}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={styles.childItem}
